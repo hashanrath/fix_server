@@ -7,6 +7,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import clientRoutes from "./routes/clients.js";
+import adminRoutes from "./routes/admins.js";
 
 /* CONFIGURATION */
 const app = express();
@@ -21,6 +22,8 @@ app.use(cors());
 
 /* ROUTES */
 app.use("/client", clientRoutes);
+
+app.use("/admin", adminRoutes);
 
 /* MONGOOSE SETUP */
 const PORT = process.env.PORT || 3001;

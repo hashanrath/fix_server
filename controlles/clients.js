@@ -1,125 +1,91 @@
 import Clients from "../models/clients.js";
 import jwt from "jsonwebtoken";
 
+// Create a new client
 export const addClient = async (req, res) => {
   const { name, email, phone } = req.body;
   try {
-    // Check if the donor already exists
+    // Check if the client already exists
     const existingClient = await Clients.findOne({ email });
 
-    // If donor exists, send error response
     if (existingClient) {
       return res.status(400).json({ error: "Client already exists" });
     }
 
-    // Create a new donor instance with hashed password
     const newClient = new Clients({
       name,
       email,
       phone,
     });
 
-    // Save the donor to the database
+    // Save the client to the database
     await newClient.save();
 
-    // Generate JWT token
+    // Generate a JWT token
     const token = jwt.sign(
-      { donorId: newClient._id },
+      { clientId: newClient._id },
       process.env.JWT_SECRET_KEY,
       {
         expiresIn: "1h",
       }
     );
 
-    // Send success response with token
-    res.status(200).json({ token });
+    res.status(201).json({ token, message: "Client created successfully" });
   } catch (error) {
-    console.error("Error registering donor:", error);
-    res
-      .status(500)
-      .json({ error: "Registration failed. Please try again later." });
+    res.status(500).json({ error: "Registration failed. Please try again later." });
   }
 };
 
-// export const donorLogin = async (req, res) => {
-//   const { email, password } = req.body;
-//   try {
-//     // Find donor by email
-//     const donor = await Clients.findOne({ email });
+// Get (Search) client by email from the body
+export const getClientByEmail = async (req, res) => {
+  try {
+    const { email } = req.body; // Get email from the request body
+    const client = await Clients.findOne({ email });
 
-//     // If donor not found or password doesn't match, send error response
-//     if (!donor || !bcrypt.compareSync(password, donor.password)) {
-//       return res.status(401).json({ message: "Invalid email or password" });
-//     }
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
 
-//     // Generate JWT token
-//     const token = jwt.sign({ donorId: donor._id }, process.env.JWT_SECRET_KEY, {
-//       expiresIn: "1h", // Token expiration time
-//     });
+    res.status(200).json(client);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
-//     res.json({ token });
-//   } catch (error) {
-//     console.error("Login failed:", error);
-//     res.status(500).json({ message: "Login failed. Please try again later." });
-//   }
-// };
-// export const getClients = async (req, res) => {
-//   try {
-//     const Clients = await Clients.find();
-//     res.status(200).json(Clients);
-//   } catch (error) {
-//     res.status(404).json({ message: error.message });
-//   }
-// };
+// Update a client by email from the body
+export const updateClient = async (req, res) => {
+  const { email, name, phone } = req.body; // Get email and other data from the body
 
-// export const getLeaderboard = async (req, res) => {
-//   try {
-//     const Clients = await Clients.find().sort({ score: -1 });
-//     res.status(200).json(Clients);
-//   } catch (error) {
-//     res.status(404).json({ message: error.message });
-//   }
-// };
+  try {
+    const updatedClient = await Clients.findOneAndUpdate(
+      { email },
+      { name, phone },
+      { new: true }
+    );
 
-// export const getDonor = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const Clients = await Clients.findById(id);
-//     res.status(200).json(Clients);
-//   } catch (error) {
-//     res.status(404).json({ message: error.message });
-//   }
-// };
+    if (!updatedClient) {
+      return res.status(404).json({ error: "Client not found" });
+    }
 
-// export const deleteClients = async (req, res) => {
-//   const { id } = req.params;
-//   try {
-//     const deletedDonor = await Clients.findByIdAndDelete(id);
-//     if (!deletedDonor) {
-//       return res.status(404).json({ error: "Donor not found" });
-//     }
-//     res.json({ message: "Donor deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting donor:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
+    res.status(200).json(updatedClient);
+  } catch (error) {
+    res.status(500).json({ error: "Update failed. Please try again later." });
+  }
+};
 
-// export const updateClients = async (req, res) => {
-//   try {
-//     const donorId = req.params.id;
-//     const updatedDonorData = req.body; // Updated donor data from the request body
+// Delete a client by email from the body
+export const deleteClientByEmail = async (req, res) => {
+  const { email } = req.body; // Get email from the body
 
-//     // Find the donor by ID in the database and update its information
-//     const updatedDonor = await Clients.findByIdAndUpdate(
-//       donorId,
-//       updatedDonorData,
-//       { new: true }
-//     );
+  try {
+    const deletedClient = await Clients.findOneAndDelete({ email });
 
-//     res.json(updatedDonor); // Send back the updated donor object
-//   } catch (error) {
-//     console.error("Error updating donor:", error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+    if (!deletedClient) {
+      return res.status(404).json({ error: "Client not found" });
+    }
+
+    res.status(200).json({ message: "Client deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

@@ -1,22 +1,18 @@
 import express from "express";
-import {
-  // getDonors,
-  // getDonor,
-  addClient,
-  // deleteDonors,
-  // updateDonors,
-  // donorLogin,
-  // getLeaderboard,
-} from "../controlles/clients.js";
+import { addClient, getClientByEmail, updateClient, deleteClientByEmail } from "../controlles/clients.js";
 
 const router = express.Router();
 
-// router.get("/gets", getDonors);
-// router.get("/leaderboard", getLeaderboard);
-// router.get("/get/:id", getDonor);
-router.post("/addClient", addClient);
-// router.delete("/delete/:id", deleteDonors);
-// router.put("/update/:id", updateDonors);
-// router.post("/login", donorLogin);
+// Create a new client
+router.post("/add", addClient);
+
+// Get client by email (from the body)
+router.post("/get", getClientByEmail);
+
+// Update client by email (from the body)
+router.put("/update", updateClient);
+
+// Delete client by email (from the body)
+router.delete("/delete", deleteClientByEmail);
 
 export default router;
